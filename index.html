@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unstill Life – A Shifting Landscape</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="start-overlay" role="dialog" aria-modal="true" aria-labelledby="start-title" aria-describedby="start-lead start-note">
+      <div class="start-card">
+        <h1 id="start-title">Unstill Life<span class="start-dash"> – </span><span class="start-subtitle">A Shifting Landscape</span></h1>
+        <p id="start-lead" class="start-lead">
+          <span>Make a sound, and the landscape wakes.</span>
+          <span>Be still, and it settles into a painting.</span>
+        </p>
+        <p id="start-note" class="start-note">Your browser will ask to use the microphone. The piece listens to the room to tell stillness from sound: nothing is recorded or leaves your device.</p>
+        <div class="start-actions">
+          <button id="start-begin" class="start-begin" type="button">Begin</button>
+          <button id="start-begin-fs" class="start-begin-fs" type="button">Begin in fullscreen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Debug overlay. Tabbed (initTabs in debugPanel.js) — every control keeps
+         its id, so tab membership is just DOM position and touches no binding
+         logic. A control a system driver overwrites is marked from the JS
+         side, by src/panel/drivenRegistry.js — never by a class here, which is what
+         used to rot silently when a driver stopped writing a row it once
+         owned. See that file's comment for the whole scheme. -->
+    <div id="debug">
+      <div class="dbg-tabs" role="tablist">
+        <button class="dbg-tab-btn active" data-tab="live">Live</button>
+        <button class="dbg-tab-btn" data-tab="driven">Driven</button>
+        <button class="dbg-tab-btn" data-tab="terrain">Terrain</button>
+        <button class="dbg-tab-btn" data-tab="biome">Biome</button>
+        <button class="dbg-tab-btn" data-tab="water">Water</button>
+        <button class="dbg-tab-btn" data-tab="clouds">Clouds</button>
+        <button class="dbg-tab-btn" data-tab="atmosphere">Sky</button>
+        <button class="dbg-tab-btn" data-tab="sound">Sound</button>
+        <button class="dbg-tab-btn" data-tab="forest">Forest</button>
+        <button class="dbg-tab-btn" data-tab="colour">Colour</button>
+        <button class="dbg-tab-btn" data-tab="camera">Camera</button>
+        <button class="dbg-tab-btn" data-tab="mic">Mic</button>
+        <button class="dbg-tab-btn" data-tab="artpass">Art pass</button>
+        <button class="dbg-tab-btn" data-tab="debugview">Debug view</button>
+        <button class="dbg-tab-btn" data-tab="performance">Performance</button>
+      </div>
+
+      <!-- ══ LIVE — state readouts + the controls that steer the system ══ -->
+      <div class="dbg-tab active" data-tab="live">
+        <h3>Perf</h3>
+        <div class="dbg-scalar"><span>frame time</span><span id="val-frametime">0.0</span> ms</div>
+        <div class="dbg-scalar"><span>fps</span><span id="val-fps">0</span></div>
+        <hr class="dbg-divider">
+        <h3>State</h3>
+        <div class="dbg-row" id="bar-momentum">
+          <span class="dbg-label">momentum</span>
+          <div class="dbg-bar-track"><div class="dbg-bar-fill" style="width:50%"></div></div>
+          <span class="dbg-val" id="val-momentum">0.50</span>
+        </div>
+        <div class="dbg-row" id="bar-restlessness">
+          <span class="dbg-label">restlessness</span>
+          <div class="dbg-bar-track"><div class="dbg-bar-fill" style="width:100%"></div></div>
+          <span class="dbg-val" id="val-restlessness">1.00</span>
+        </div>
+        <div class="dbg-row" id="bar-noisespeed">
+          <span class="dbg-label">noiseSpeed</span>
+          <div class="dbg-bar-track"><div class="dbg-bar-fill" style="width:50%"></div></div>
+          <span class="dbg-val" id="val-noisespeed">0.26</span>
+        </div>
+        <hr class="dbg-divider">
+        <div class="dbg-scalar"><span>noiseTime</span><span id="val-noisetime">0.00</span></div>
+        <div class="dbg-scalar"><span>attention</span><span id="val-attention">0.50</span></div>
+        <div class="dbg-scalar"><span>frozen (settled)</span><span id="val-frozen">yes</span></div>
+        <div class="dbg-scalar"><span>seaLevel</span><span id="val-sealevel">0.0</span></div>
+        <hr class="dbg-divider">
+        <h3>Interaction — the only inputs that drive the system</h3>
+        <div data-param-group="live.interaction"></div>
+        <hr class="dbg-divider">
+        <h3>Snapshot</h3>
+        <div class="dbg-row">
+          <button id="snap-export">Export</button>
+          <button id="snap-import">Import</button>
+        </div>
+        <textarea id="snap-json" rows="4" placeholder="scene snapshot JSON — Export copies here + to clipboard; paste + Import to reproduce" style="width:100%;box-sizing:border-box;font-family:monospace;font-size:10px"></textarea>
+      </div>
+
+      <!-- ══ DRIVEN — the DIALS the scene moves on its own, and the drift that
+           moves them. Organised by DRIVER, not by subject: the underlying
+           knobs each dial writes through live with their subject (Terrain,
+           Water, Clouds, Colour) and are marked there instead. Dimmed live by
+           initSysDriven; turn a drift off to hand-tune its dials. ══ -->
+      <div class="dbg-tab" data-tab="driven">
+        <p class="dbg-note">The dials the scene moves on its own. Each row below is overwritten every frame while its drift is running — turn the drift off to set one by hand. The knobs those dials write through live with their subject, on the Terrain, Water, Clouds and Colour tabs.</p>
+
+        <label class="dbg-toggle"><input type="checkbox" id="tog-scene-drift" checked> the scene drifts on its own</label>
+
+        <h4 class="dbg-sub">Form drift</h4>
+        <div data-param-group="driven.form-drift"></div>
+
+        <h4 class="dbg-sub">Cloud &amp; sky drift</h4>
+        <div data-param-group="driven.cloud-and-sky-drift"></div>
+
+        <h4 class="dbg-sub">Form dials</h4>
+        <div data-param-group="driven.form-dials"></div>
+
+        <h4 class="dbg-sub">Snowline</h4>
+        <div data-param-group="driven.snowline"></div>
+
+        <h4 class="dbg-sub">Cloud dials</h4>
+        <div data-param-group="driven.cloud-dials"></div>
+
+        <h4 class="dbg-sub">Weather</h4>
+        <p class="dbg-note">Both drift on their own while <b>drifting weather</b> is on. Turn it off to set them by hand — that is the way to see what a full grey day actually looks like.</p>
+        <div data-param-group="driven.weather"></div>
+      </div>
+
+      <!-- ══ TERRAIN — the whole landform, walker-written or not. Rows the form
+           dials overwrite are marked from JS (drivenRegistry.js's 'form'
+           driver, declared by scene/formDriver.js's formDrivenIds) and dim while the drift
+           runs; the dials themselves are on the Driven tab. ══ -->
+      <div class="dbg-tab" data-tab="terrain">
+        <h4 class="dbg-sub">Landform</h4>
+        <div data-param-group="terrain.landform"></div>
+
+        <h4 class="dbg-sub">Bedrock &amp; mantle</h4>
+        <div data-param-group="terrain.bedrock-and-mantle"></div>
+
+        <h4 class="dbg-sub">Where rock detail appears</h4>
+        <div data-param-group="terrain.rock-gate"></div>
+
+        <h4 class="dbg-sub">What rock detail looks like</h4>
+        <div data-param-group="terrain.rock-look"></div>
+
+        <h4 class="dbg-sub">Inspect</h4>
+        <div data-param-group="terrain.inspect"></div>
+
+        <h4 class="dbg-sub">Erosion</h4>
+        <div data-param-group="terrain.erosion"></div>
+
+        <h4 class="dbg-sub">fBM debug</h4>
+        <div data-param-group="terrain.fbm-debug"></div>
+
+        <h4 class="dbg-sub">fBM instance 0 <span style="opacity:.4;font-weight:400">(ridges)</span></h4>
+        <div data-param-group="terrain.fbm0"></div>
+        <div class="dbg-scalar"><span>driftX</span><span id="f0-dx-cur">0.00</span></div>
+        <div class="dbg-scalar"><span>driftZ</span><span id="f0-dz-cur">0.00</span></div>
+        <div class="dbg-scalar"><span>angle</span><span id="f0-angle-cur">0.0°</span></div>
+        <div data-param-group="terrain.fbm0-2"></div>
+
+        <h4 class="dbg-sub">fBM instance 1 <span style="opacity:.4;font-weight:400">(valleys)</span></h4>
+        <div data-param-group="terrain.fbm1"></div>
+        <div class="dbg-scalar"><span>driftX</span><span id="f1-dx-cur">0.00</span></div>
+        <div class="dbg-scalar"><span>driftZ</span><span id="f1-dz-cur">0.00</span></div>
+        <div class="dbg-scalar"><span>angle</span><span id="f1-angle-cur">0.0°</span></div>
+        <div data-param-group="terrain.fbm1-2"></div>
+      </div>
+
+      <!-- ══ BIOME — placement thresholds + shore ══ -->
+      <div class="dbg-tab" data-tab="biome">
+        <h4 class="dbg-sub">Zonation</h4>
+        <div data-param-group="biome.zonation"></div>
+
+        <h4 class="dbg-sub">Shore</h4>
+        <div data-param-group="biome.shore"></div>
+      </div>
+
+      <!-- ══ WATER ══ -->
+      <div class="dbg-tab" data-tab="water">
+        <h4 class="dbg-sub">Sea band</h4>
+        <div data-param-group="water.sea-band"></div>
+
+        <h4 class="dbg-sub">Surface</h4>
+        <div data-param-group="water.surface"></div>
+      </div>
+
+      <!-- ══ CLOUDS ══ -->
+      <div class="dbg-tab" data-tab="clouds">
+        <div data-param-group="clouds.top"></div>
+
+        <div class="dbg-row"><span class="dbg-label">grid cell</span><span class="dbg-val"><b id="dbg-cvol-cell">16.0</b> u · <b id="dbg-cvol-octaves">4</b> baked + <b id="dbg-cvol-detail-oct">0</b> marched octaves</span></div>
+        <div class="dbg-row"><span class="dbg-label">cloud draw distance</span><span class="dbg-val"><b id="dbg-cvol-radius">1811</b> u</span></div>
+        <div data-param-group="clouds.top-2"></div>
+
+        <h4 class="dbg-sub">Detail (quality vs. cost)</h4>
+        <div data-param-group="clouds.detail"></div>
+
+        <h4 class="dbg-sub">Weather map</h4>
+        <div data-param-group="clouds.weather-map"></div>
+
+        <h4 class="dbg-sub">Curl-noise warp</h4>
+        <div data-param-group="clouds.curl-noise-warp"></div>
+
+        <h4 class="dbg-sub">Perlin-Worley</h4>
+        <div data-param-group="clouds.perlin-worley"></div>
+
+        <h4 class="dbg-sub">Horizon</h4>
+        <div data-param-group="clouds.horizon"></div>
+
+        <h4 class="dbg-sub">Posterize</h4>
+        <div data-param-group="clouds.posterize"></div>
+
+        <h4 class="dbg-sub">Shading experiments (shared by both implementations)</h4>
+        <div data-param-group="clouds.shading"></div>
+      </div>
+
+      <!-- ══ SKY — the weather state (atmosphere.js). Two scalars drive every
+           row below, and each driven parameter has BOTH its ends here: the
+           "in clear weather" block is where it sits at overcast 0 / haze 0, the
+           "at full …" blocks are where it ends up at 1. The clear block is
+           seeded live from the rest of the panel when "weather" is switched on,
+           so it starts out agreeing with the Colour/Water/Clouds tabs; editing
+           it afterwards redefines what a clear day is, including what switching
+           the weather back off restores to. ══ -->
+      <div class="dbg-tab" data-tab="atmosphere">
+        <h4 class="dbg-sub">Sky gradient</h4>
+        <div data-param-group="atmosphere.sky-gradient"></div>
+
+        <h4 class="dbg-sub">Conditions</h4>
+        <p class="dbg-note">The two condition scalars themselves — <b>overcast</b> and <b>haze</b> — and the drift that moves them live on the <b>Driven</b> tab. This tab is where you author what each condition REACHES.</p>
+        <p class="dbg-note">Cloud AMOUNT follows overcast directly. Everything else it changes — the light, the colours, the water — is held back until there is cloud in the sky to justify it, between these two points.</p>
+        <div data-param-group="atmosphere.conditions"></div>
+
+        <h4 class="dbg-sub">In clear weather</h4>
+        <p class="dbg-note">What the scene looks like at <b>overcast 0 / haze 0</b> — the other end of every row below. Seeded from the Colour, Water and Clouds tabs when the weather is switched on, and restored exactly when it is switched off.</p>
+        <div data-param-group="atmosphere.clear" data-colour-style="labelled"></div>
+
+        <h4 class="dbg-sub">At full overcast</h4>
+        <div data-param-group="atmosphere.heavy-overcast" data-colour-style="labelled"></div>
+
+        <h4 class="dbg-sub">At full haze</h4>
+        <div data-param-group="atmosphere.heavy-haze" data-colour-style="labelled"></div>
+      </div>
+
+      <!-- ══ SOUND ══ -->
+      <div class="dbg-tab" data-tab="sound">
+        <label class="dbg-toggle"><input type="checkbox" id="tog-sound"> sound enabled</label>
+        <div data-param-group="sound.top"></div>
+
+        <h4 class="dbg-sub">Listen to one thing at a time</h4>
+        <p class="dbg-note">Solo mutes everything else so a single layer can be judged on its own. The buttons fire one sound immediately, whatever the landscape is currently doing.</p>
+        <div class="dbg-row">
+          <label class="dbg-toggle"><input type="radio" name="snd-solo" value="" checked> full mix</label>
+          <label class="dbg-toggle"><input type="radio" name="snd-solo" value="wind"> wind</label>
+          <label class="dbg-toggle"><input type="radio" name="snd-solo" value="trees"> trees</label>
+          <label class="dbg-toggle"><input type="radio" name="snd-solo" value="surf"> water</label>
+          <label class="dbg-toggle"><input type="radio" name="snd-solo" value="birds"> birds</label>
+          <label class="dbg-toggle"><input type="radio" name="snd-solo" value="paint"> paint</label>
+        </div>
+        <div class="dbg-row">
+          <button id="snd-play-bird">Bird (near)</button>
+          <button id="snd-play-birdfar">Bird (far)</button>
+          <button id="snd-play-break">Wave break</button>
+          <button id="snd-play-gust">Gust in the trees</button>
+        </div>
+        <div class="dbg-row">
+          <button id="snd-play-sweep">Canvas sweep</button>
+          <button id="snd-play-stroke">Brush stroke</button>
+          <button id="snd-play-crack">Paint crack</button>
+        </div>
+        <div class="dbg-scalar"><span>audio engine</span><span id="snd-val-ctx">not started</span></div>
+        <div class="dbg-scalar"><span>output level</span><span id="snd-val-level">0.0000</span></div>
+        <div class="dbg-row"><button id="snd-test-tone">Test tone (plain beep)</button></div>
+        <div class="dbg-scalar"><span>swell</span><span id="snd-val-swell">0.00</span></div>
+        <div class="dbg-scalar"><span>bird calls/min</span><span id="snd-val-birdrate">0.0</span></div>
+        <div class="dbg-scalar"><span>trees (live gain)</span><span id="snd-val-trees">0.0000</span></div>
+        <div class="dbg-scalar"><span>painting up</span><span id="snd-val-painting">0.00</span></div>
+
+        <h4 class="dbg-sub">Signal flow — what the scene asks, what each voice does</h4>
+        <pre id="snd-flow" style="margin:2px 0;font-family:monospace;font-size:10px;line-height:1.35;white-space:pre;overflow-x:auto">start the audio to see the signal flow</pre>
+        <h4 class="dbg-sub">Events — newest first, with age</h4>
+        <pre id="snd-events" style="margin:2px 0;font-family:monospace;font-size:10px;line-height:1.35;white-space:pre;overflow-x:auto">no events yet</pre>
+
+        <h4 class="dbg-sub">Balance</h4>
+        <div data-param-group="sound.balance"></div>
+
+        <h4 class="dbg-sub">Trees</h4>
+        <div data-param-group="sound.trees"></div>
+
+        <h4 class="dbg-sub">When the painting appears</h4>
+        <div data-param-group="sound.paint"></div>
+      </div>
+
+      <!-- ══ FOREST ══ -->
+      <div class="dbg-tab" data-tab="forest">
+        <div data-param-group="forest.top"></div>
+
+        <h4 class="dbg-sub">Forest form</h4>
+        <div data-param-group="forest.forest-form"></div>
+
+        <h4 class="dbg-sub">Tree species</h4>
+        <!-- Generated from src/terrain/treeSpecies.js by debugPanel.js — one group per
+             species, so adding a species never touches this file. -->
+        <div id="ctrl-species"></div>
+      </div>
+
+      <!-- ══ COLOUR ══ -->
+      <div class="dbg-tab" data-tab="colour">
+        <h3>Palette colours</h3>
+        <div id="ctrl-colors" class="dbg-colors" data-param-group="colour.palette"></div>
+        <hr class="dbg-divider">
+        <div data-param-group="colour.palette-colours"></div>
+        <h4 class="dbg-sub">Cloud shadows</h4>
+        <div data-param-group="colour.cloud-shadows"></div>
+
+        <h4 class="dbg-sub">Light shafts</h4>
+        <div data-param-group="colour.light-shafts"></div>
+        <div data-param-group="colour.light-shafts-2" data-colour-style="labelled"></div>
+        <div data-param-group="colour.light-shafts-3"></div>
+      </div>
+
+      <!-- ══ CAMERA ══ -->
+      <div class="dbg-tab" data-tab="camera">
+        <div data-param-group="camera.top"></div>
+        <h4 class="dbg-sub">Clearance</h4>
+        <div data-param-group="camera.clearance"></div>
+        <!-- max held below CAM_POSITION.y (sceneConfig.js, currently 45) with a margin — this is the whole safety guarantee (heightmap.frag applyCamPit), not a computed check. -->
+        <div data-param-group="camera.clearance-2"></div>
+      </div>
+
+      <!-- ══ MIC — microphone-driven attention ══ -->
+      <div class="dbg-tab" data-tab="mic">
+        <label class="dbg-toggle"><input type="checkbox" id="int-src-mic"> use microphone (instead of the Attention slider)</label>
+        <div class="dbg-row"><button id="mic-calibrate">Calibrate empty room</button></div>
+        <hr class="dbg-divider">
+        <div class="dbg-scalar"><span>mic</span><span id="val-mic-active">off</span></div>
+        <div class="dbg-scalar"><span>raw rms</span><span id="val-mic-rms">0.00000</span></div>
+        <div class="dbg-scalar"><span>raw peak</span><span id="val-mic-peak">0.00000</span></div>
+        <div class="dbg-scalar" style="font-size:10px;word-break:break-all"><span>diag</span><span id="val-mic-diag">—</span></div>
+        <div class="dbg-scalar"><span>level (dBFS)</span><span id="val-mic-db">—</span></div>
+        <div class="dbg-scalar"><span>flux</span><span id="val-mic-flux">0.0000</span></div>
+        <canvas id="mic-flux-graph" class="dbg-graph" width="300" height="60"></canvas>
+        <div class="dbg-scalar"><span>restlessness</span><span id="val-mic-restlessness">0.00</span></div>
+        <div class="dbg-scalar"><span>mic attention</span><span id="val-mic-attention">0.00</span></div>
+        <hr class="dbg-divider">
+        <div data-param-group="mic.top"></div>
+      </div>
+
+      <!-- ══ DEBUG VIEW — raw signal readouts, replaces material colour ══ -->
+      <div class="dbg-tab" data-tab="debugview">
+        <div data-param-group="debugview.top"></div>
+      </div>
+
+      <!-- ══ ART PASS — the divisionist post-process (artPass.js) ══
+           Deliberately almost empty: every control in this tab is generated
+           from src/artpass/artPassParams.js, which is the single source of truth for
+           each slider's range, step, default AND the uniform it drives. Forty-
+           six sliders hand-written here would be 184 numbers that can silently
+           drift from the values the pass is actually built with. -->
+      <div class="dbg-tab" data-tab="artpass">
+        <label class="dbg-toggle"><input type="checkbox" id="tog-artpass" checked> paint the frame</label>
+        <p class="dbg-note">Rebuilds the picture as neo-impressionist brush marks. Off by default — it replaces the whole image, so leave it off to tune the landscape itself.</p>
+        <div id="artpass-controls"></div>
+      </div>
+
+      <!-- ══ PERFORMANCE — per-module frame-time breakdown ══ -->
+      <div class="dbg-tab" data-tab="performance">
+        <h3>Frame</h3>
+        <p class="dbg-note">Over the last ~2 seconds. Typical is the middle frame; slowest 5% is what a stutter feels like.</p>
+        <div class="dbg-scalar"><span>fps</span><span id="perf-val-fps">0</span></div>
+        <div class="dbg-scalar"><span>typical frame</span><span id="perf-val-frametime">0.0</span> ms</div>
+        <div class="dbg-scalar"><span>slowest 5%</span><span id="perf-val-p95">0.0</span> ms</div>
+        <div class="dbg-scalar"><span>drawn pixels</span><span id="perf-val-resolution">-</span></div>
+        <div class="dbg-scalar"><span>JavaScript per frame</span><span id="perf-val-js">0.0</span> ms</div>
+        <div data-param-group="performance.frame"></div>
+        <hr class="dbg-divider">
+        <h3>Cost per part</h3>
+        <p class="dbg-note">Switches each part off and on a few times and measures how much faster frames get without it. Takes 15–30 s; parts flicker while it runs. Parts overlap on the GPU, so the costs need not add up to the frame time.</p>
+        <button id="perf-measure">Measure costs</button>
+        <div class="dbg-note" id="perf-measure-status">Not measured yet.</div>
+        <div id="perf-costs"></div>
+      </div>
+
+    </div>
+
+    <!-- Control bar -->
+    <div id="ui">
+      <label>
+        Attention
+        <input id="attention" type="range" min="0" max="1.0" step="0.01" value="1" />
+      </label>
+      <button id="pause">Pause</button>
+      <button id="toggle-debug">Debug</button>
+      <button id="fullscreen">Fullscreen</button>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.DS_Store
+vite.config.js.timestamp-*
+.claude/
+CLAUDE.md
+test-results/
+
+
+# Deployment and CI of the author's own server, kept out of the public repository
+Dockerfile
+docker-compose.yml
+.dockerignore
+.gitlab-ci.yml
