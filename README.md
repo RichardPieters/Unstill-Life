@@ -4,7 +4,7 @@ Unstill Life is a procedural landscape painting that reacts to the sound of the
 room. It runs in the browser with three.js and WebGL 2 and does not require a
 server. Terrain, water, clouds, forest and sound are all generated at runtime.
 
-![One cycle of Unstill Life, from painting to landscape and back](docs/unstill-life.mp4)
+![One cycle of Unstill Life, from painting to landscape and back](https://github.com/user-attachments/assets/e5300b75-7354-4769-8fe4-c0ae3f8c2458)
 
 **[Live version](https://unstill-life.richardpieters.de)** · [Full technical overview](docs/architecture_guide.md) · [Seminar paper (German)](docs/seminar_paper.pdf)
 
